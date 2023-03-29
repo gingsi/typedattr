@@ -1,5 +1,8 @@
 # typedattr
 
+<img alt="build 3.7 status" title="build 3.7 status" src="https://img.shields.io/github/actions/workflow/status/gingsi/typedattr/build_py37.yml?branch=main&label=build%203.7">
+<img alt="build 3.9 status" title="build 3.9 status" src="https://img.shields.io/github/actions/workflow/status/gingsi/typedattr/build_py39.yml?branch=main&label=build%203.9">
+
 Typechecking and conversion utility for [attrs](https://www.attrs.org/en/stable/).
 
 Parses a dictionary into an attrs instance. Contains other generic object, type and cache utilities.
