@@ -167,7 +167,7 @@ _REMOVE_KEY = f"__{__name__}_REMOVE_KEY__"
 
 
 @pytest.fixture(params=[
-    ({"f1": 0, "f2": 23, "f3": b"6", }, CfgWithOptAtt, TypeError, {"f2": 23, "f3": _REMOVE_KEY}),
+    ({"f1": 0, "f2": b"23"}, CfgWithOptAtt, TypeError, {"f2": b"23"}),
     ({"f1": 1, }, CfgWithOptAtt, None, {"f2": None}),
     ({"f1": 2, }, CfgWithOptAttBrackets, None, {"f2": None}),
     ({"f1": 3, }, CfgWithOpt, None, {"f2": None}),
@@ -211,13 +211,13 @@ _REMOVE_KEY = f"__{__name__}_REMOVE_KEY__"
     # note: the attrs.as_dict() removes the defaultdict
     ({"f1": 35}, CfgWithDefaultDict, None, {"f2": {}}),
     ({"f1": 36}, CfgWithDefaultDictNested, None, {"f3": {"f1": 12, "f2": {}}}),
-    ({"f1": 36}, CfgWithDefaultDictDoubleNested, None,
+    ({"f1": 37}, CfgWithDefaultDictDoubleNested, None,
      {'f3': {'f1': 12, 'f3': {'f1': 12, 'f2': {}}}}),
     ({"f1": b"6"}, CfgWithDefaultDictNested, TypeError, {"f3": {"f1": 12, "f2": {}}}),
-    ({"f1": 36}, CfgWithDefaultDictNestedUntyped, None, {"f3": {"f1": 12, "f2": {}}}),
-    ({"f1": 38}, CfgIntFloat, None, {"f2": 100}),
+    ({"f1": 39}, CfgWithDefaultDictNestedUntyped, None, {"f3": {"f1": 12, "f2": {}}}),
+    ({"f1": 40}, CfgIntFloat, None, {"f2": 100}),
     ({"f1": (1, 3)}, CfgUntyped, None, {}),
-    ({"f1": 8}, CfgPositional, None, {"f2": 7}),
+    ({"f1": 42}, CfgPositional, None, {"f2": 7}),
 ])
 def fixture_test_cases(request):
     yield request.param
@@ -275,6 +275,41 @@ def test_typedattr(fixture_test_cases):
         print(f"Cand {cand_dict}")
         assert cand_dict == ref_dict
     print()
+
+
+@define(slots=False)
+class CfgSlotsFalse:
+    pass
+
+
+@define
+class CfgSlotsTrue:
+    pass
+
+
+def test_skip_unknowns():
+    ref = {"foo": 12, "bar": 13}
+
+    # unknown fields are skipped independent of strict mode
+    out = attrs_from_dict(CfgSlotsFalse, ref, skip_unknowns=True, strict=True)
+    assert attrs.asdict(out) == {}
+    out = attrs_from_dict(CfgSlotsFalse, ref, skip_unknowns=True, strict=False)
+    assert attrs.asdict(out) == {}
+
+    with pytest.raises(TypeError):
+        # in strict mode, unknown fields are not allowed
+        _out = attrs_from_dict(CfgSlotsFalse, ref, skip_unknowns=False, strict=True)
+
+    # in non-strict mode with slots=False and skip_unknowns=False, fields will be added
+    # but they will be missing in the repr and in the output of asdict
+    out = attrs_from_dict(CfgSlotsFalse, ref, skip_unknowns=False, strict=False)
+    assert attrs.asdict(out) == {}
+    for k, v in ref.items():
+        assert getattr(out, k) == v
+
+    # with default slots=True this will not work
+    with pytest.raises(AttributeError):
+        _out = attrs_from_dict(CfgSlotsTrue, ref, skip_unknowns=False, strict=False)
 
 
 def test_numpy_comparison():

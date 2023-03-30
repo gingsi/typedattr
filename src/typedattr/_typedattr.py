@@ -53,7 +53,8 @@ def definenumpy(maybe_cls: Union[bool, Type] = False, **kwargs):
 
 
 def attrs_from_dict(
-        cls: AttrsClass, input_dict_or_attrs_inst: Union[Dict, AttrsInstance], strict: bool = True,
+        cls: AttrsClass, input_dict_or_attrs_inst: Union[Dict, AttrsInstance],
+        strict: bool = True, skip_unknowns: bool = False,
         recursor_class: Type[RecursorInterface] = StrictRecursor,
         conversions: Optional[conversion_type] = None) -> AttrsInstance:
     """
@@ -63,6 +64,7 @@ def attrs_from_dict(
         cls: class decorated with @attrs.define or @definetyped
         input_dict_or_attrs_inst: data source, dict or attrs instance.
         strict: whether to do type checking and conversion
+        skip_unknowns: whether to skip input fields that are not defined in cls
         recursor_class: recursor definition to find nested content
         conversions: custom conversions, e.g. if target is annotated as Path and value
             is given as str, then convert to Path instead of raising a TypeError.
@@ -74,23 +76,25 @@ def attrs_from_dict(
     """
     recursor = recursor_class()
     return _attrs_from_dict(recursor, cls, input_dict_or_attrs_inst, strict=strict,
-                            conversions=conversions)
+                            skip_unknowns=skip_unknowns, conversions=conversions)
 
 
 def _attrs_from_dict(
         recursor: RecursorInterface, cls: AttrsClass, input_dict_or_attrs: Union[Dict, object],
-        strict: bool = False, conversions: Optional[conversion_type] = None):
+        strict: bool = False, skip_unknowns: bool = False,
+        conversions: Optional[conversion_type] = None):
     print_fn(f"Parsing {cls} from {input_dict_or_attrs}")
-    if has(input_dict_or_attrs):
+    input_cls = type(input_dict_or_attrs)
+    if has(input_cls):
         # if given an attrs instance, convert it to dict and then
         # parse it for conversions and typechecking
-        input_cls = type(input_dict_or_attrs)
         assert input_cls == cls, (
             f"Mismatch: Trying to parse input of type {input_cls} as type {cls}")
         input_fields_dict = fields_dict(type(input_dict_or_attrs))
         input_dict: Dict[str, Any] = {k: getattr(input_dict_or_attrs, k) for k in input_fields_dict}
         return _attrs_from_dict(
-            recursor, input_cls, input_dict, strict=strict, conversions=conversions)
+            recursor, input_cls, input_dict, strict=strict, skip_unknowns=skip_unknowns,
+            conversions=conversions)
 
     input_dict: Dict[str, Any] = input_dict_or_attrs
     if input_dict is None:
@@ -111,9 +115,9 @@ def _attrs_from_dict(
     if len(nonmatching_input) > 0:
         err_msg = (f"Keys in input {list(nonmatching_input.keys())} not defined "
                    f"for class {cls} with attributes {sorted(all_att_names)}")
-        if strict:
+        if strict and not skip_unknowns:
             raise TypeError(err_msg)
-        logging.getLogger(__name__).warning(f"Skipped some keys from the input: {err_msg}")
+        logging.warning(f"Skipped unknown keys from the input: {err_msg}")
 
     # split into positional and keyword arguments
     in_args, in_kwargs = [], {}
@@ -138,22 +142,33 @@ def _attrs_from_dict(
     # typecheck and unfold nested values in the attrs instance
     for att in all_atts:
         name = att.name
-        if name in nonmatching_input:
-            # skip adding illegal keys
-            continue
         value = getattr(attrs_inst, name)
         typ = att.type
         new_value = _parse_nested(recursor, name, value, typ, strict=strict,
-                                  conversions=conversions)
+                                  skip_unknowns=skip_unknowns, conversions=conversions)
         setattr(attrs_inst, name, new_value)
+
+    for key, value in nonmatching_input.items():
+        if skip_unknowns:
+            break
+        # non-strict mode and keep unknowns: try to add it to the class
+        try:
+            setattr(attrs_inst, key, value)
+        except AttributeError as e:
+            raise AttributeError(
+                f"Field {key} is missing from configuration {cls}. "
+                f"Either add it to the configuration or decorate with @attrs.define(slots=False) "
+                f"to allow adding unknown fields or set skip_unknowns=True to ignore them.") from e
+
     print_fn(f"Output of _attrs_from_dict: {attrs_inst}")
     return attrs_inst
 
 
-def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = True,
+def _parse_nested(recursor: RecursorInterface, name, value, typ,
+                  strict: bool = True, skip_unknowns: bool = False,
                   conversions: conversion_type = None, depth: int = 0):
     conversions = default_conversions if conversions is None else conversions
-    parse_recursive = partial(_parse_nested, parser, depth=depth + 1)
+    parse_recursive = partial(_parse_nested, recursor, depth=depth + 1, skip_unknowns=skip_unknowns)
 
     origin = get_origin(typ)
     args = get_args(typ)
@@ -173,7 +188,8 @@ def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = Tr
 
     # resolve nested attrclass
     if has(typ):
-        return _attrs_from_dict(parser, typ, value, strict=strict, conversions=conversions)
+        return _attrs_from_dict(recursor, typ, value, strict=strict, skip_unknowns=skip_unknowns,
+                                conversions=conversions)
 
     # resolve any
     if typ == Any:
@@ -196,7 +212,7 @@ def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = Tr
     if origin == tuple:
         if not (len(args) == 2 and args[1] == Ellipsis):
             # resolve fixed tuple
-            if not parser.is_iterable_fn(value):
+            if not recursor.is_iterable_fn(value):
                 return maybe_raise_typeerorr(f"{err_msg}. Expect a sequence, got {type(value)}")
             if len(value) != len(args):
                 return maybe_raise_typeerorr(
@@ -211,7 +227,7 @@ def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = Tr
 
     # check dict
     if origin in (dict, collections.defaultdict):
-        if not parser.is_mapping_fn(value):
+        if not recursor.is_mapping_fn(value):
             return maybe_raise_typeerorr(f"{err_msg}. Expect a mapping, got {type(value)}")
         if len(args) == 0:
             args = [Any, Any]
@@ -238,7 +254,7 @@ def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = Tr
 
     # resolve list
     if origin == list:
-        if not parser.is_iterable_fn(value):
+        if not recursor.is_iterable_fn(value):
             return maybe_raise_typeerorr(f"{err_msg}. Expect iterable, got {type(value)}")
         list_arg_type = args[0]
         list_output = []
@@ -278,6 +294,9 @@ def _parse_nested(parser: RecursorInterface, name, value, typ, strict: bool = Tr
             return convert_target(value)
 
     if strict:
-        raise TypeError(f"{err_msg}. Wrong type or type not supported.")
+        add_info = ""
+        if typ is None:
+            add_info = "Untyped fields not allowed in strict mode. "
+        raise TypeError(f"{add_info}{err_msg}. Wrong type or type not supported.")
     print_fn(f"{err_msg}. Returning value {value} as-is")
     return value

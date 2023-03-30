@@ -79,7 +79,12 @@ Enabled by calling `attrs_from_dict` with `strict=False`
 
 * No conversion except for creating the attrs instance from the dict
 * Ignore silently if types cannot be matched or abstract annotation types are used
-* Warn about unknown fields in the input
+* Unknown fields in the input will be added to the attrs instance if possible
+  (see the hint below about slots)
+
+### Skip unknowns
+
+Set `skip_unknowns=True` to ignore all unknown input fields.
 
 ### Hints
 
