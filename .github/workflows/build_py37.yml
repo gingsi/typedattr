@@ -60,7 +60,7 @@ jobs:
       continue-on-error: true
       with:
         path: /tmp/dummydir1
-        key: pipupdate-${{ runner.os }}--${{ runner.arch }}--date-${{
+        key: pipupdate-${{ runner.os }}--${{ runner.arch }}--${{ env.W_ENV_NAME }}--date-${{
           steps.collect-info.outputs.today }}-conda-${{
           hashFiles(env.W_REQ_CONDA) }}-pip-${{
           hashFiles(env.W_REQ_PIP)}}-cachenum-${{
@@ -83,11 +83,11 @@ jobs:
       continue-on-error: true
       with:
         path: ${{ steps.collect-info.outputs.env_conda }}/envs/${{ env.W_ENV_NAME }}
-        key: conda-${{ runner.os }}--${{ runner.arch }}--calweek-${{
+        key: conda-${{ runner.os }}--${{ runner.arch }}--${{ env.W_ENV_NAME }}--calweek-${{
           steps.collect-info.outputs.thisweek }}--conda-${{
           hashFiles(env.W_REQ_CONDA) }}--cachenum-${{
           env.W_CACHE_NUMBER }}--commit-${{ github.sha }}
-        restore-keys: conda-${{ runner.os }}--${{ runner.arch }}--calweek-${{
+        restore-keys: conda-${{ runner.os }}--${{ runner.arch }}--${{ env.W_ENV_NAME }}--calweek-${{
           steps.collect-info.outputs.thisweek }}--conda-${{
           hashFiles(env.W_REQ_CONDA) }}--cachenum-${{
           env.W_CACHE_NUMBER }}
