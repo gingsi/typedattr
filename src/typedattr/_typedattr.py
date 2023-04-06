@@ -1,5 +1,4 @@
 import collections
-import logging
 from functools import partial
 from inspect import isclass
 from pathlib import Path
@@ -112,13 +111,6 @@ def _attrs_from_dict(
         else:
             nonmatching_input[key] = value
 
-    if len(nonmatching_input) > 0:
-        err_msg = (f"Keys in input {list(nonmatching_input.keys())} not defined "
-                   f"for class {cls} with attributes {sorted(all_att_names)}")
-        if strict and not skip_unknowns:
-            raise TypeError(err_msg)
-        logging.warning(f"Skipped unknown keys from the input: {err_msg}")
-
     # split into positional and keyword arguments
     in_args, in_kwargs = [], {}
     cls_fields_dict = fields_dict(cls)
@@ -148,17 +140,22 @@ def _attrs_from_dict(
                                   skip_unknowns=skip_unknowns, conversions=conversions)
         setattr(attrs_inst, name, new_value)
 
-    for key, value in nonmatching_input.items():
-        if skip_unknowns:
-            break
-        # non-strict mode and keep unknowns: try to add it to the class
-        try:
-            setattr(attrs_inst, key, value)
-        except AttributeError as e:
-            raise AttributeError(
-                f"Field {key} is missing from configuration {cls}. "
-                f"Either add it to the configuration or decorate with @attrs.define(slots=False) "
-                f"to allow adding unknown fields or set skip_unknowns=True to ignore them.") from e
+    # handle unknown fields
+    if len(nonmatching_input) > 0 and not skip_unknowns:
+        if strict:
+            raise TypeError(f"Keys in input {list(nonmatching_input.keys())} not defined "
+                            f"for class {cls} with attributes {sorted(all_att_names)}")
+        for key, value in nonmatching_input.items():
+            if skip_unknowns:
+                break
+            # non-strict mode and keep unknowns: try to add it to the class
+            try:
+                setattr(attrs_inst, key, value)
+            except AttributeError as e:
+                raise AttributeError(
+                    f"Field {key} is missing from configuration {cls}. Either add it to the "
+                    f"configuration or decorate with @attrs.define(slots=False) to allow adding "
+                    f"unknown fields or set skip_unknowns=True to ignore them.") from e
 
     print_fn(f"Output of _attrs_from_dict: {attrs_inst}")
     return attrs_inst
@@ -177,8 +174,9 @@ def _parse_nested(recursor: RecursorInterface, name, value, typ,
     value_type = type(value)
     value_type_name = value_type.__name__ if hasattr(value_type, "__name__") else str(value_type)
     err_msg = (f"Could not parse {name}={value} (type {value_type_name}) as type "
-               f"{target_type_name} with strict={strict} depth={depth} "
-               f"type annotation origin={origin} args={args}")
+               f"{target_type_name} with strict={strict} "
+               # f"depth={depth} type annotation origin={origin} args={args}"
+               )
 
     def maybe_raise_typeerorr(full_err_msg):
         if strict:
