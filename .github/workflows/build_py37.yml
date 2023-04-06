@@ -36,6 +36,7 @@ jobs:
         activate-environment: ${{ env.W_ENV_NAME }}
         auto-update-conda: false  # true  # updating or using "latest" is alot slower
         auto-activate-base: false
+        use-only-tar-bz2: true  # needed for caching to work properly according to conda-incubator
 #
     - name: Collect information
       id: collect-info

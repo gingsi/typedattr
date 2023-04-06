@@ -22,7 +22,7 @@ jobs:
       W_ENV_NAME: env-py39
       W_REQ_CONDA: etc/environment-py39.yml
       W_REQ_PIP: requirements.txt
-      W_CACHE_NUMBER: 0  # increase to reset cache
+      W_CACHE_NUMBER: 1  # increase to reset cache
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 2  # stuck cache download should stop after X minutes
       W_CACHE_KILL: 3  # hard kill a stuck cache download after X minutes
     steps:
@@ -36,6 +36,7 @@ jobs:
         activate-environment: ${{ env.W_ENV_NAME }}
         auto-update-conda: false  # true  # updating or using "latest" is alot slower
         auto-activate-base: false
+        use-only-tar-bz2: true  # needed for caching to work properly according to conda-incubator
 #
     - name: Collect information
       id: collect-info
