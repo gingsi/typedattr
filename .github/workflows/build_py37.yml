@@ -135,7 +135,6 @@ jobs:
       run: |
         python -m pytest --cov
 #
-
     - name: Run pylint
       continue-on-error: true
       run: |
