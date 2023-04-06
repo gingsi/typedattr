@@ -113,7 +113,8 @@ python -m pytest --cov
 pylint tests
 
 # run tests for python>=3.9
-python -m pytest tests_py39 --cov
+python -m pytest tests tests_py39 --cov
+pylint tests 
 pylint tests_py39
 ~~~
 
