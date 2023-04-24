@@ -259,3 +259,21 @@ def check_object_equality(
         Empty list means the objects are identical.
     """
     return len(compare_nested_objects(d1, d2, recursor_class)) == 0
+
+
+def big_obj_to_short_str(d: Any) -> str:
+    """
+    Args:
+        d: any big object e.g. a dict or a numpy array
+
+    Returns:
+        A hopefully short and representative string representation of the object.
+    """
+    if d is None:
+        return str(None)
+    if hasattr(d, "shape"):
+        return f"{d.shape}"
+    try:
+        return str(len(d))
+    except TypeError:
+        return f"Object of type {type(d).__name__}"

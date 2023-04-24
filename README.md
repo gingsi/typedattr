@@ -7,7 +7,7 @@
 <a href="https://github.com/gingsi/typedattr/actions/workflows/build_py39.yml">
   <img alt="build 3.9 status" title="build 3.9 status" src="https://img.shields.io/github/actions/workflow/status/gingsi/typedattr/build_py39.yml?branch=main&label=build%203.9" />
 </a>
-<img alt="coverage" title="coverage" src="docs/coverage.svg" />
+<img alt="coverage" title="coverage" src="https://raw.githubusercontent.com/gingsi/typedattr/main/docs/coverage.svg" />
 <a href="https://pypi.org/project/typedattr/">
   <img alt="version" title="version" src="https://img.shields.io/pypi/v/typedattr?color=success" />
 </a>
@@ -28,7 +28,7 @@ pip install typedattr
 
 ## Quickstart
 
-Define the class hierarchy and parse the input:
+Define the class hierarchy and parse the input using `attrs_from_dict`:
 
 ~~~python
 from attrs import define
@@ -54,7 +54,6 @@ print(attrs_from_dict(CfgNested, {"sub_cfg": {"foo": 1, "bar": 2}}))
 
 ## Features
 
-* `@definenumpy` decorator for equality check if the instances contains numpy arrays
 * Nested checking and conversion of python standard types
 * Supports old and new style typing (e.g. `typing.List` and `list`)
 * Supports positional and keyword arguments in classes
@@ -63,6 +62,7 @@ print(attrs_from_dict(CfgNested, {"sub_cfg": {"foo": 1, "bar": 2}}))
   `int` to `float`
 * Allows to redefine which objects will be recursed into, by default recurses into standard
   containers (list, dict, etc.)
+* `@definenumpy` decorator for equality check if the instances contains numpy arrays
 
 ### Strict mode (default)
 
@@ -124,4 +124,4 @@ This library should be useful for off-the-shelf typechecking and conversion of d
 attrs instances.
 
 For more complex or other related use cases there are many alternatives:
-`cattrs`, `attrs-strict`, `pydantic`, `dataconf` to name a few.
+`cattrs`, `attrs-strict`, `pydantic`, `dataconf`, `omegaconf` to name a few.
