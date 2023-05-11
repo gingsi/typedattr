@@ -94,10 +94,12 @@ The following behaviour stems from the `attrs` package:
 * Untyped fields or "ClassVar" typed fields will be ignored by @attrs.define
   and therefore also by this library.
 
-### Possible improvements
+### Other utilities in the package 
 
-* Supports Callable but does not typecheck the signature
-* Not tested for NewType, Literal
+* `Const`: An alternative to `enum.Enum` for defining constants
+* `cacheutils`: Cache objects to disk / to memory
+* `objutils`: Various utilities like nested modification of dicts
+* Type definitions and other utilities
 
 ## Install locally and run tests
 

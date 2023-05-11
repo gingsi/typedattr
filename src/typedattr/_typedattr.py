@@ -74,8 +74,11 @@ def attrs_from_dict(
         Instance of cls with values from input_dict_or_attrs_inst
     """
     recursor = recursor_class()
-    return _attrs_from_dict(recursor, cls, input_dict_or_attrs_inst, strict=strict,
-                            skip_unknowns=skip_unknowns, conversions=conversions)
+    try:
+        return _attrs_from_dict(recursor, cls, input_dict_or_attrs_inst, strict=strict,
+                                skip_unknowns=skip_unknowns, conversions=conversions)
+    except TypeError as e:
+        raise TypeError(f"Error parsing {cls} from {input_dict_or_attrs_inst}") from e
 
 
 def _attrs_from_dict(
