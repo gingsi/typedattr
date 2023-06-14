@@ -107,7 +107,7 @@ Clone repository and cd into, then:
 
 ~~~bash
 pip install -e .
-pip install pytest pytest-cov pylint
+pip install -U pytest pytest-cov pylint
 pylint typedattr
 
 # run tests for python>=3.7

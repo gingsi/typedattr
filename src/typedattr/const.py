@@ -67,15 +67,11 @@ class Const(metaclass=InstanceToClassDelegator):
     """
 
     # create the class properties with empty entries for the root parent
-    _dict: Dict[str, Dict[str, Any]] = {"ConstantHolder": {}}
+    _dict: Dict[str, Dict[str, Any]] = {"Const": {}}
 
     @classmethod
     def _get_dict(cls):
         return cls._dict[cls.__name__]
-
-    @classmethod
-    def __dict__(cls) -> Dict[str, Any]:
-        return cls._get_dict()
 
     @classmethod
     def keys(cls) -> KeysView[str]:
@@ -106,7 +102,7 @@ class Const(metaclass=InstanceToClassDelegator):
         return val
 
     def __getitem__(self, item: str):
-        raise RuntimeError("ConstantHolder cannot be instanced")
+        raise RuntimeError("Const subclass cannot be instanced")
 
     @classmethod
     def __len__(cls) -> int:
@@ -176,10 +172,6 @@ class Const(metaclass=InstanceToClassDelegator):
             if inspect.ismethod(value) and value.__self__ is cls:
                 continue
 
-            # # make sure all constants are uppercase
-            # assert key == key.upper(), (
-            #     f"Constant: {key} in class: {cls.__name__} must be uppercase.")
-
             # if allowed types is specified, make sure the value types are allowed
             if allowed_types is not None:
                 # isinstance errors when fed lists instead of tuple, so convert lists to tuples
@@ -193,5 +185,4 @@ class Const(metaclass=InstanceToClassDelegator):
             cls._dict[cls.__name__][key] = value
 
     def __init__(self) -> None:
-        raise RuntimeError(
-            f"Do not instance this class, it's a ConstantHolder: {type(self).__name__}")
+        raise RuntimeError(f"Do not instance this class, it's a Const: {type(self).__name__}")
