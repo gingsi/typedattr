@@ -271,9 +271,10 @@ def big_obj_to_short_str(d: Any) -> str:
     """
     if d is None:
         return str(None)
+    class_name = type(d).__name__
     if hasattr(d, "shape"):
-        return f"{d.shape}"
+        return f"{class_name} shape {d.shape}"
     try:
-        return str(len(d))
+        return f"{class_name} len {len(d)}"
     except TypeError:
-        return f"Object of type {type(d).__name__}"
+        return f"Object of type {class_name}"

@@ -101,8 +101,8 @@ class Const(metaclass=InstanceToClassDelegator):
     def __class_getitem__(cls, item: str):
         try:
             val = cls._get_dict()[item]
-        except AttributeError:
-            raise KeyError(f"{item} in {cls}")
+        except AttributeError as e:
+            raise KeyError(f"{item} in {cls}") from e
         return val
 
     def __getitem__(self, item: str):
@@ -164,7 +164,7 @@ class Const(metaclass=InstanceToClassDelegator):
                 pass
 
         # loop attributes, check correctness and extend the parent's class properties _keys, _values, _dict.
-        for key in cls.__dict__:
+        for key in cls.__dict__.keys():
             # ignore non-public fields
             if key[0] == "_":
                 continue
