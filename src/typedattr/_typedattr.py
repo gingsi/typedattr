@@ -8,6 +8,8 @@ from typing import (
 import attrs
 from attr import has, AttrsInstance
 from attrs import define, fields_dict, fields, Attribute
+from typedattr.typext import AttrsClass
+from typedattr.utils.objects import check_object_equality, RecursorInterface, StrictRecursor
 
 try:
     # python>=3.8
@@ -15,9 +17,6 @@ try:
 except ImportError:
     # python<3.8
     from typing_extensions import get_origin, get_args
-
-from typedattr.typeutils import AttrsClass
-from typedattr.objutils import check_object_equality, RecursorInterface, StrictRecursor
 
 # default conversions allow to convert instead of raising errors in case of matching types
 # e.g. create Path given str, or create float given int
@@ -28,7 +27,7 @@ default_conversions: conversion_type = [
 ]
 
 
-def print_fn(*args, **kwargs):  # pylint: disable=unused-argument  # noqa
+def _print_fn(*args, **kwargs):  # pylint: disable=unused-argument  # noqa
     # print(*args, **kwargs)  # uncomment for debugging
     pass
 
@@ -86,7 +85,7 @@ def _attrs_from_dict(
         recursor: RecursorInterface, cls: AttrsClass, input_dict_or_attrs: Union[Dict, object],
         strict: bool = False, skip_unknowns: bool = False,
         conversions: Optional[conversion_type] = None):
-    print_fn(f"Parsing {cls} from {input_dict_or_attrs}")
+    _print_fn(f"Parsing {cls} from {input_dict_or_attrs}")
     input_cls = type(input_dict_or_attrs)
     if has(input_cls):
         # if given an attrs instance, convert it to dict and then
@@ -161,7 +160,7 @@ def _attrs_from_dict(
                     f"configuration or decorate with @attrs.define(slots=False) to allow adding "
                     f"unknown fields or set skip_unknowns=True to ignore them.") from e
 
-    print_fn(f"Output of _attrs_from_dict: {attrs_inst}")
+    _print_fn(f"Output of _attrs_from_dict: {attrs_inst}")
     return attrs_inst
 
 
@@ -185,7 +184,7 @@ def _parse_nested(recursor: RecursorInterface, name, value, typ,
     def maybe_raise_typeerorr(full_err_msg):
         if strict:
             raise TypeError(full_err_msg)
-        print_fn(f"Caught: {full_err_msg}. Returning as is.")
+        _print_fn(f"Caught: {full_err_msg}. Returning as is.")
         return value
 
     # resolve nested attrclass
@@ -275,10 +274,10 @@ def _parse_nested(recursor: RecursorInterface, name, value, typ,
     try:
         if isinstance(value, typ):
             return value
-        print_fn(f"Not compatible: {value} as {typ}, {err_msg}")
+        _print_fn(f"Not compatible: {value} as {typ}, {err_msg}")
 
     except TypeError as e:
-        print_fn(f"Caught {e} while trying to parse {value} as {typ}, {err_msg}")
+        _print_fn(f"Caught {e} while trying to parse {value} as {typ}, {err_msg}")
 
     # show better error message for abstract types
     try:
@@ -300,5 +299,5 @@ def _parse_nested(recursor: RecursorInterface, name, value, typ,
         if typ is None:
             add_info = "Untyped fields not allowed in strict mode. "
         raise TypeError(f"{add_info}{err_msg}. Wrong type or type not supported.")
-    print_fn(f"{err_msg}. Returning value {value} as-is")
+    _print_fn(f"{err_msg}. Returning value {value} as-is")
     return value

@@ -10,7 +10,7 @@ import pytest
 from attr import define
 
 from typedattr import definenumpy, attrs_from_dict
-from typedattr.objutils import flatten_dict
+from typedattr.utils.objects import flatten_dict
 
 
 @define

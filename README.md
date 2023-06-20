@@ -22,6 +22,8 @@ Contains other generic object, type and cache utilities.
 
 Requires `python>=3.7`
 
+Note: `0.2` breaks some backwards compatibility. Use `0.1` or update your code. 
+
 ```bash
 pip install typedattr
 ```

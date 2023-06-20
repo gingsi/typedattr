@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from typedattr.objutils import modify_nested_object, flatten_dict
+from typedattr.utils.objects import modify_nested_object, flatten_dict
 
 
 @pytest.mark.parametrize("input_object, expected_object", [

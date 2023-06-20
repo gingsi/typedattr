@@ -10,7 +10,7 @@ from typing import Any, Callable, Type, List
 import numpy as np
 from attr import has
 
-from .attrutils import get_attr_names
+from typedattr.typext import get_attr_names
 
 
 def get_all_base_classes(klass: type) -> List[type]:
