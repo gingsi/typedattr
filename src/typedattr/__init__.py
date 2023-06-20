@@ -4,4 +4,4 @@ from .typext import get_attr_names
 
 
 __all__ = ["definenumpy", "attrs_from_dict", "get_attr_names", "Const"]
-__version__ = "0.2.4"
+__version__ = "0.2.5"
