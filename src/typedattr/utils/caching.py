@@ -39,7 +39,7 @@ class StoreNoNumpy(FileSystemStoreBackend):
 register_store_backend(StoreNoNumpy.NAME, StoreNoNumpy)
 
 
-def get_joblib_memory(location="cache_joblib", verbose=1, numpy_capable=False):
+def get_joblib_memory(location="cache_joblib", verbose=1, numpy_capable=False) -> joblib.Memory:
     """
     Wrapper for joblib.Memory which uses the StoreNoNumpy backend by default.
 

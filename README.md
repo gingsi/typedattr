@@ -13,6 +13,11 @@
 </a>
 </p>
 
+**Deprecated**: 
+- Attribute parsing capabilities have been moved to [typedparser](https://github.com/gingsi/typedparser)
+- Other utilities have been moved to [packg](https://github.com/gingsi/packg)
+- This code and pypi package may be deleted at some point.
+
 Typechecking and conversion utility for [attrs](https://www.attrs.org/en/stable/)
 
 Parses a dictionary into an attrs instance.
